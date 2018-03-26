@@ -31,10 +31,6 @@ export function signalRRegisterCommands(store: any) {
         store.dispatch({ type: 'SEND_MESSAGE', params: data })
     });
 
-    //connection.on('JoinRoom', data => {
-    //    store.dispatch({ type: 'JOIN_ROOM', params: data })
-    //});
-
     connection.start();
 }
 

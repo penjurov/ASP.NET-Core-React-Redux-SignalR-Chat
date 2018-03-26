@@ -5,8 +5,8 @@ import { bindActionCreators } from "redux";
 import { ApplicationState }  from '../store';
 import * as ChatStore from '../store/Chat';
 import { chatActions } from '../actions/ChatActions';
-import { IRoom } from '../common/IRoomContainer';
-import { RoomLink } from './RoomLink'
+import { RegisterUserView } from './RegisterUserView'
+import { JoinedUserView } from './JoinedUserView'
 
 type ChatProps = ChatStore.ChatState & RouteComponentProps<{}>;
 
@@ -21,6 +21,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         this.sendMessage = this.sendMessage.bind(this);
         this.changeRoom = this.changeRoom.bind(this);
         this.updateRoomName = this.updateRoomName.bind(this);
+        this.leaveChatClick = this.leaveChatClick.bind(this);
     }
 
     componentWillReceiveProps(nextProps: ChatProps) {
@@ -81,6 +82,30 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         });
     }
 
+    leaveChatClick() {
+        let state: ChatStore.ChatState = Object.assign({}, this.state);
+
+        let roomName = state.currentRoom.name
+        let room = state.rooms['general'];
+
+        if (room) {
+            room.hasNewMessages = false;
+        }
+
+        state.rooms.remove(state.currentRoom.name);
+
+        this.setState({
+            currentRoom: room,
+            roomNameInput: '',
+            rooms: state.rooms
+        });
+
+        this.state.actions.leaveRoom({
+            user: this.state.nickName,
+            roomName: roomName
+        });
+    }
+
     sendMessage() {
         let message = '<' + this.state.nickName + '>: ' + this.state.message;
         this.setState({ message: '' });
@@ -101,70 +126,29 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         });
     }
 
-    getRegisterUserView() {
-        return (
-            <div>
-                <label htmlFor="nickName">Select Nickname:</label>
-                <div className="input-group">
-                    <input
-                        type="text"
-                        name="nickName"
-                        className="form-control width100"
-                        value={this.state.nickName}
-                        onChange={this.updateChatState} />
-                    <span className="input-group-btn">
-                        <button className="btn btn-info" onClick={this.joinChatClick}>Join</button>
-                    </span>
-                </div>
-            </div>
-        );
-    }
-
-    getJoinedUserView() {
-        return (
-            <div>
-                <div className="input-group top-buffer">
-                    <input
-                        type="text"
-                        name="roomName"
-                        className="form-control width100"
-                        value={this.state.roomNameInput}
-                        onChange={this.updateRoomName} />
-
-                    <span className="input-group-btn">
-                        <button className="btn btn-info" onClick={this.joinChatClick}>Join</button>
-                    </span>
-                </div>
-                <div className='top-buffer'>
-                    {this.state.rooms.rooms().map((room: IRoom, index: number) =>
-                        <RoomLink key={index} room={room} changeRoom={this.changeRoom} />
-                    )}
-                </div>
-  
-                <textarea className="form-control chat-area top-buffer" value={this.state.currentRoom.chat} />
-
-                <div className="input-group top-buffer">
-                    <input
-                        type="text"
-                        name="message"
-                        className="form-control width100"
-                        value={this.state.message}
-                        onChange={this.updateChatState} />
-                    <span className="input-group-btn">
-                        <button className="btn btn-info" onClick={this.sendMessage}>Send</button>
-                    </span>
-                </div>
-            </div>
-        );
-    }
-
     public render() {
         let body;
 
         if (this.state.currentRoom.name === undefined) {
-            body = this.getRegisterUserView();
+            body = <RegisterUserView
+                nickName={this.state.nickName}
+                joinChatClick={this.joinChatClick}
+                updateChatState={this.updateChatState}
+            />
         } else {
-            body = this.getJoinedUserView()
+            body = <JoinedUserView
+                roomNameInput={this.state.roomNameInput}
+                updateRoomName={this.updateRoomName}
+                joinChatClick={this.joinChatClick}
+                updateChatState={this.updateChatState}
+                rooms={this.state.rooms.rooms()}
+                changeRoom={this.changeRoom}
+                chat={this.state.currentRoom.chat}
+                message={this.state.message}
+                sendMessage={this.sendMessage}
+                currentRoomName={this.state.currentRoom.name}
+                leaveChatClick={this.leaveChatClick}
+            />
         }
 
         return <div className="top-buffer">

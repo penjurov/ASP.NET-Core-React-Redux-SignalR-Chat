@@ -28,7 +28,7 @@ html, body {
 }
 
 textarea.chat-area {
-    height: 80vh;
+    height: 74vh;
 }
 
 @media (max-width: 767px) {

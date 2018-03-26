@@ -26,11 +26,8 @@ namespace SignalRReactRedux.Hubs
         public Task LeaveGroup(SendMessageModel model)
         {
             Groups.RemoveAsync(Context.ConnectionId, model.RoomName);
-            return SendMessage(new SendMessageModel
-            {
-                RoomName = model.RoomName,
-                Message = model.User + " has leaved the room"
-            });
+            model.Message = model.User + " has leaved " + model.RoomName;
+            return SendMessage(model);
         }
     }
 }
