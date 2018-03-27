@@ -1,36 +1,23 @@
-﻿export interface IRoomContainer {
-    add(key: string, value: any): void;
-    remove(key: string): void;
+﻿import { IRoom } from './IRoom';
+
+export interface IRoomContainer {
+    addRoom(room: IRoom): void;
+    removeRoom(key: string): void;
     containsRoom(key: string): Boolean;
     rooms(): Array<IRoom>;
     [key: string]: any;
 }
 
-export interface IRoom {
-    name: string,
-    chat: string,
-    hasNewMessages: Boolean,
-    [key: string]: any;
-}
-
-
 export class RoomContainer {
-
     _rooms: Array<IRoom> = new Array<IRoom>();
     [key: string]: any;
 
-    add(name: string, chat: string) {
-        let room: IRoom = {
-            name: name,
-            chat: chat,
-            hasNewMessages: false
-        };
-
-        this[name] = room;
+    addRoom(room: IRoom) {
+        this[room.name] = room;
         this._rooms.push(room);
     }
 
-    remove(name: string) {
+    removeRoom(name: string) {
         var rooms = this._rooms.filter(room => {
             return room.name !== name;
         });

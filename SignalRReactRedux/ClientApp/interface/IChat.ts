@@ -1,5 +1,6 @@
 import { chatActions } from '../actions/ChatActions'
-import { IRoomContainer, IRoom } from '../common/IRoomContainer'
+import { IRoomContainer } from './IRoomContainer'
+import { IRoom } from './IRoom'
 
 export interface ChatState {
     rooms: IRoomContainer;
@@ -17,4 +18,5 @@ export interface MessageParams {
     user: string,
     roomName: string,
     message?: string
+    participants?: Array<string>
 }

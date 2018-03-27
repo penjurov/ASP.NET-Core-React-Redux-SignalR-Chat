@@ -1,4 +1,4 @@
-import * as Chat from './Chat';
+import * as Chat from '../interface/IChat';
 import {chatReducer}  from '../reducers/chatReducer';
 
 // The top-level state object

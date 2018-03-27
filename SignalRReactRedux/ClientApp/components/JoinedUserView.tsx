@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 import { RoomLink } from './RoomLink'
-import { IRoom } from '../common/IRoomContainer';
+import { IRoom } from '../interface/IRoom';
 
 interface JoinedUserProps {
     roomNameInput: string;
@@ -14,6 +14,7 @@ interface JoinedUserProps {
     message: string;
     sendMessage: any;
     currentRoomName: string;
+    participants: Array<string>
 }
 
 export const JoinedUserView = (props: JoinedUserProps) => {
@@ -43,26 +44,36 @@ export const JoinedUserView = (props: JoinedUserProps) => {
                     <button className="btn btn-info" onClick={props.joinChatClick}>Join</button>
                 </span>
             </div>
+
             <div className='top-buffer'>
                 {props.rooms.map((room: IRoom, index: number) =>
                     <RoomLink key={index} room={room} changeRoom={props.changeRoom} />
                 )}
             </div>
 
-            <textarea className="form-control chat-area top-buffer" value={props.chat} />
+            <div className="row top-buffer">
+                <div className="col-sm-10">
+                    <textarea className="form-control chat-area" value={props.chat} />
 
-            {leaveRoomDiv}
+                    {leaveRoomDiv}
 
-            <div className="input-group top-buffer">
-                <input
-                    type="text"
-                    name="message"
-                    className="form-control width100"
-                    value={props.message}
-                    onChange={props.updateChatState} />
-                <span className="input-group-btn">
-                    <button className="btn btn-info" onClick={props.sendMessage}>Send</button>
-                </span>
+                    <div className="input-group top-buffer">
+                        <input
+                            type="text"
+                            name="message"
+                            className="form-control width100"
+                            value={props.message}
+                            onChange={props.updateChatState} />
+                        <span className="input-group-btn">
+                            <button className="btn btn-info" onClick={props.sendMessage}>Send</button>
+                        </span>
+                    </div>
+                </div>
+                <div className="col-sm-2">
+                    <select className="chat-participants" multiple={true}>
+                        {props.participants.map((participant, index) => <option key={index}>{participant}</option>)}
+                    </select>
+                </div>
             </div>
         </div>
     );

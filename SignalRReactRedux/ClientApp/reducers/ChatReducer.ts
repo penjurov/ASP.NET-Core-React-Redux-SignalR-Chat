@@ -1,7 +1,8 @@
 ﻿import { Reducer, Action } from 'redux';
-import { ChatState } from '../store/Chat';
 import { KnownAction } from '../actions/ChatActions';
-import { RoomContainer, IRoom } from '../common/IRoomContainer';
+import { ChatState } from '../interface/IChat';
+import { RoomContainer } from '../interface/IRoomContainer';
+import { Room } from '../interface/IRoom'
 
 export const chatReducer: Reducer<ChatState> = (state: ChatState, incomingAction: Action) => {
     const action = incomingAction as KnownAction;
@@ -11,13 +12,14 @@ export const chatReducer: Reducer<ChatState> = (state: ChatState, incomingAction
             let chatRoom;
 
             if (changed.rooms.containsRoom(action.params.roomName)) {
-                chatRoom = Object.assign({}, changed.rooms[action.params.roomName]);
+                chatRoom = new Room(changed.rooms[action.params.roomName].name, changed.rooms[action.params.roomName].chat, action.params.participants || []);
                 action.params.message = action.params.message || '';
                 chatRoom.chat = chatRoom.chat ? chatRoom.chat + "\n" + action.params.message : action.params.message;
-                changed.rooms[action.params.roomName].chat = chatRoom.chat;
+
+                changed.rooms[action.params.roomName] = chatRoom;
             } else {
-                changed.rooms.add(action.params.roomName, action.params.message);
-                chatRoom = changed.rooms[action.params.roomName];
+                chatRoom = new Room(action.params.roomName, action.params.message || '', action.params.participants || []);
+                changed.rooms.addRoom(chatRoom);
             }
 
             chatRoom.hasNewMessages = true;

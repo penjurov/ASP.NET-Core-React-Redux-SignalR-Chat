@@ -1,5 +1,5 @@
 ﻿import * as React from 'react';
-import { IRoom } from '../common/IRoomContainer';
+import { IRoom } from '../interface/IRoom';
 
 interface RoomProps {
     room: IRoom;

@@ -3,10 +3,11 @@ import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from "redux";
 import { ApplicationState }  from '../store';
-import * as ChatStore from '../store/Chat';
 import { chatActions } from '../actions/ChatActions';
-import { RegisterUserView } from './RegisterUserView'
-import { JoinedUserView } from './JoinedUserView'
+import { RegisterUserView } from './RegisterUserView';
+import { JoinedUserView } from './JoinedUserView';
+import * as ChatStore from '../interface/IChat';
+import { Room } from '../interface/IRoom';
 
 type ChatProps = ChatStore.ChatState & RouteComponentProps<{}>;
 
@@ -66,9 +67,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         if (room) {
             room.hasNewMessages = false;
         } else {
-            room = {
-                name: roomName
-            };
+            room = new Room(roomName, '', [this.state.nickName]);
         }
        
         this.setState({
@@ -85,14 +84,14 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
     leaveChatClick() {
         let state: ChatStore.ChatState = Object.assign({}, this.state);
 
-        let roomName = state.currentRoom.name
+        let roomName = state.currentRoom.name;
         let room = state.rooms['general'];
 
         if (room) {
             room.hasNewMessages = false;
         }
 
-        state.rooms.remove(state.currentRoom.name);
+        state.rooms.removeRoom(roomName);
 
         this.setState({
             currentRoom: room,
@@ -148,6 +147,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
                 sendMessage={this.sendMessage}
                 currentRoomName={this.state.currentRoom.name}
                 leaveChatClick={this.leaveChatClick}
+                participants={this.state.currentRoom.participants}
             />
         }
 

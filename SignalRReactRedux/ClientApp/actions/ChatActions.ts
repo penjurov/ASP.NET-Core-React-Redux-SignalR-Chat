@@ -1,5 +1,5 @@
 ﻿import { AppThunkAction } from "../store";
-import { ChatState, MessageParams } from '../store/Chat';
+import { ChatState, MessageParams } from '../interface/IChat';
 
 interface SendMessage { type: 'SEND_MESSAGE', params: MessageParams }
 interface SignalRSendMessage { type: 'SIGNALR_SEND_MESSAGE', params: MessageParams }

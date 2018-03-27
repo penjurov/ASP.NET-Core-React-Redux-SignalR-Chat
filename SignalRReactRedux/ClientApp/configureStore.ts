@@ -6,7 +6,7 @@ import { ApplicationState, reducers } from './store';
 import { History } from 'history';
 import * as SignalR from '@aspnet/signalr-client';
 
-const connection = new SignalR.HubConnection('http://localhost:58491/chatMessage', { transport: SignalR.TransportType.LongPolling });
+const connection = new SignalR.HubConnection('http://localhost:5000/chatMessage', { transport: SignalR.TransportType.LongPolling });
 
 export function signalRInvokeMiddleware(store: any) {
     return (next: any) => async (action: any) => {
