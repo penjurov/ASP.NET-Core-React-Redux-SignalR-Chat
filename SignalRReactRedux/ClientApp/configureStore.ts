@@ -12,13 +12,31 @@ export function signalRInvokeMiddleware(store: any) {
     return (next: any) => async (action: any) => {
         switch (action.type) {
             case "SIGNALR_SEND_MESSAGE":
-                connection.invoke('SendMessage', action.params);
+                connection.invoke('SendMessage', action.params)
+                    .then(() => {
+                        action.params.onSuccess();
+                    })
+                    .catch(function (e) {
+                        alert(e);
+                    });
                 break;
             case "SIGNALR_JOIN_ROOM":
-                connection.invoke('JoinGroup', action.params);
+                connection.invoke('JoinGroup', action.params)
+                    .then(() => {
+                        action.params.onSuccess();
+                    })
+                    .catch(function (e) {
+                        alert(e);
+                    });
                 break;
             case "SIGNALR_LEAVE_ROOM":
-                connection.invoke('LeaveGroup', action.params);
+                connection.invoke('LeaveGroup', action.params)
+                    .then(() => {
+                        action.params.onSuccess();
+                    })
+                    .catch(function (e) {
+                        alert(e);
+                    });
                 break;
         }
 

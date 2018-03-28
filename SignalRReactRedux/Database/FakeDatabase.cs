@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace SignalRReactRedux.Database
 {
     public class FakeDatabase
     {
-        private static Dictionary<string,List<string>> usersByRooms = new Dictionary<string, List<string>>();
+        private const string GENERAL_GROUP_NAME = "general";
+        private static Dictionary<string,List<Participant>> usersByRooms = new Dictionary<string, List<Participant>>();
 
         private static FakeDatabase instance;
 
@@ -24,9 +26,9 @@ namespace SignalRReactRedux.Database
             }
         }
 
-        public List<string> GetUsers(string roomName)
+        public List<Participant> GetUsers(string roomName)
         {
-            var result = new List<string>();
+            var result = new List<Participant>();
 
             if (usersByRooms.ContainsKey(roomName))
             {
@@ -36,36 +38,51 @@ namespace SignalRReactRedux.Database
             return result;
         }
 
-        public void AddUser(string user, string roomName)
+        public void AddUser(Participant participant, string roomName)
         {
+            if (IsNickNameTaken(participant))
+            {
+                throw new Exception("Nickname is taken");
+            }
+
             if (usersByRooms.ContainsKey(roomName))
             {
                 var users = usersByRooms[roomName];
-                if (!users.Contains(user))
+                if (!users.Any(x => x.Id == participant.Id))
                 {
-                    users.Add(user);
+                    users.Add(participant);
+                }
+                else
+                {
+                    var user = users.FirstOrDefault(x => x.Id == participant.Id);
+                    user.NickName = participant.NickName;
                 }
 
                 usersByRooms[roomName] = users;
             }
             else
             {
-                usersByRooms.Add(roomName, new List<string>
+                usersByRooms.Add(roomName, new List<Participant>
                 {
-                    user
+                    participant
                 });
             }
-            
         }
 
-        public void RemoveUser(string user, string roomName)
+        private bool IsNickNameTaken(Participant participant)
+        {
+            // Can't leave general all users are there
+            return usersByRooms.ContainsKey(GENERAL_GROUP_NAME) && usersByRooms[GENERAL_GROUP_NAME].Any(x => x.NickName == participant.NickName && x.Id != participant.Id);
+        }
+
+        public void RemoveUser(Guid? id, string roomName)
         {
             if (usersByRooms.ContainsKey(roomName))
             {
                 var users = usersByRooms[roomName];
-                if (users.Contains(user))
+                if (users.Any(x => x.Id == id))
                 {
-                    users = users.Where(x => x != user).ToList();
+                    users = users.Where(x => x.Id != id).ToList();
                     usersByRooms[roomName] = users;
                 }
             }

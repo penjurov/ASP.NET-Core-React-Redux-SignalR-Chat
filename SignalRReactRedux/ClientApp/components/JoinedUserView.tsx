@@ -1,6 +1,7 @@
 ﻿import * as React from 'react';
 import { RoomLink } from './RoomLink'
 import { IRoom } from '../interface/IRoom';
+import { IParticipant } from '../interface/IParticipant';
 
 interface JoinedUserProps {
     roomNameInput: string;
@@ -14,7 +15,8 @@ interface JoinedUserProps {
     message: string;
     sendMessage: any;
     currentRoomName: string;
-    participants: Array<string>
+    participants: Array<IParticipant>,
+    startPrivateChat: any;
 }
 
 export const JoinedUserView = (props: JoinedUserProps) => {
@@ -53,7 +55,7 @@ export const JoinedUserView = (props: JoinedUserProps) => {
 
             <div className="row top-buffer">
                 <div className="col-sm-10">
-                    <textarea className="form-control chat-area" value={props.chat} />
+                    <textarea className="form-control chat-area" value={props.chat} readOnly={true} />
 
                     {leaveRoomDiv}
 
@@ -71,7 +73,7 @@ export const JoinedUserView = (props: JoinedUserProps) => {
                 </div>
                 <div className="col-sm-2">
                     <select className="chat-participants" multiple={true}>
-                        {props.participants.map((participant, index) => <option key={index}>{participant}</option>)}
+                        {props.participants.map((participant, index) => <option key={index} onClick={() => props.startPrivateChat(participant)}>{participant.NickName}</option>)}
                     </select>
                 </div>
             </div>

@@ -8,6 +8,7 @@ import { RegisterUserView } from './RegisterUserView';
 import { JoinedUserView } from './JoinedUserView';
 import * as ChatStore from '../interface/IChat';
 import { Room } from '../interface/IRoom';
+import { IParticipant, Participant } from '../interface/IParticipant';
 
 type ChatProps = ChatStore.ChatState & RouteComponentProps<{}>;
 
@@ -23,18 +24,25 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         this.changeRoom = this.changeRoom.bind(this);
         this.updateRoomName = this.updateRoomName.bind(this);
         this.leaveChatClick = this.leaveChatClick.bind(this);
+        this.startPrivateChat = this.startPrivateChat.bind(this);
     }
 
     componentWillReceiveProps(nextProps: ChatProps) {
-        if (this.state.currentRoom.chat != nextProps.currentRoom.chat && this.state.currentRoom.name === nextProps.currentRoom.name) {
+        if (this.state.currentRoom.chat !== nextProps.currentRoom.chat && this.state.currentRoom.name === nextProps.currentRoom.name) {
             this.setState({
                 currentRoom: nextProps.currentRoom
             });
         }
 
+        if (this.state.currentParticipant.Id === nextProps.currentParticipant.Id) {
+            this.setState({
+                currentParticipant: nextProps.currentParticipant
+            });
+        }
+
         if (this.state.rooms.containsRoom(nextProps.currentRoom.name)) {
             var room = this.state.rooms[nextProps.currentRoom.name];
-            room.hasNewMessages = nextProps.messageSender !== this.state.nickName && this.state.currentRoom.name !== nextProps.currentRoom.name;
+            room.hasNewMessages = nextProps.messageSender !== this.state.currentParticipant.NickName && this.state.currentRoom.name !== nextProps.currentRoom.name;
         }
     }
 
@@ -62,56 +70,70 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         let state: ChatStore.ChatState = Object.assign({}, this.state);
 
         let roomName = this.state.roomNameInput || 'general';
-        let room = state.rooms[roomName];
 
-        if (room) {
-            room.hasNewMessages = false;
-        } else {
-            room = new Room(roomName, '', [this.state.nickName]);
+        let onSuccess = () => {
+            let room = state.rooms[roomName];
+
+            if (room) {
+                room.hasNewMessages = false;
+            } else {
+                room = new Room(roomName, '', [this.state.currentParticipant]);
+            }
+
+            this.setState({
+                currentRoom: room,
+                roomNameInput: ''
+            });
         }
-       
-        this.setState({
-            currentRoom: room,
-            roomNameInput: ''
-        });
 
         this.state.actions.joinRoom({
-            user: this.state.nickName,
-            roomName: roomName
-        });
+            participantId: this.state.currentParticipant.Id,
+            nickName: this.state.nickNameInput,
+            roomName: roomName,
+            onSuccess: onSuccess
+        })
     }
 
     leaveChatClick() {
         let state: ChatStore.ChatState = Object.assign({}, this.state);
 
         let roomName = state.currentRoom.name;
-        let room = state.rooms['general'];
+        
+        let onSuccess = () => {
+            let room = state.rooms['general'];
 
-        if (room) {
-            room.hasNewMessages = false;
+            if (room) {
+                room.hasNewMessages = false;
+            }
+
+            state.rooms.removeRoom(roomName);
+
+            this.setState({
+                currentRoom: room,
+                roomNameInput: '',
+                rooms: state.rooms
+            });
         }
 
-        state.rooms.removeRoom(roomName);
-
-        this.setState({
-            currentRoom: room,
-            roomNameInput: '',
-            rooms: state.rooms
-        });
-
         this.state.actions.leaveRoom({
-            user: this.state.nickName,
-            roomName: roomName
+            nickName: this.state.currentParticipant.NickName,
+            roomName: roomName,
+            onSuccess: onSuccess
         });
     }
 
     sendMessage() {
-        let message = '<' + this.state.nickName + '>: ' + this.state.message;
-        this.setState({ message: '' });
+        let message = '<' + this.state.currentParticipant.NickName + '>: ' + this.state.message;
+        
+        let onSuccess = () => {
+            this.setState({ message: '' });
+        }
+
         this.state.actions.sendMessage({
             roomName: this.state.currentRoom.name,
             message: message,
-            user: this.state.nickName
+            nickName: this.state.currentParticipant.NickName,
+            onSuccess: onSuccess
         });
     }
 
@@ -125,12 +147,32 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         });
     }
 
+    startPrivateChat(participant: IParticipant) {
+        if (this.state.currentParticipant.Id !== participant.Id) {
+            let onSuccess = () => {
+                let room = new Room(participant.NickName, '', [this.state.currentParticipant]);
+
+                this.setState({
+                    currentRoom: room,
+                    roomNameInput: ''
+                });
+            }
+
+            this.state.actions.joinRoom({
+                participantId: this.state.currentParticipant.Id,
+                nickName: this.state.nickNameInput,
+                roomName: participant.NickName,
+                onSuccess: onSuccess
+            });
+        }
+    }
+
     public render() {
         let body;
 
         if (this.state.currentRoom.name === undefined) {
             body = <RegisterUserView
-                nickName={this.state.nickName}
+                nickName={this.state.nickNameInput}
                 joinChatClick={this.joinChatClick}
                 updateChatState={this.updateChatState}
             />
@@ -148,6 +190,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
                 currentRoomName={this.state.currentRoom.name}
                 leaveChatClick={this.leaveChatClick}
                 participants={this.state.currentRoom.participants}
+                startPrivateChat={this.startPrivateChat}
             />
         }
 

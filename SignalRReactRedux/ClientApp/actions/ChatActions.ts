@@ -6,7 +6,10 @@ interface SignalRSendMessage { type: 'SIGNALR_SEND_MESSAGE', params: MessagePara
 interface SignalRJoinRoom { type: 'SIGNALR_JOIN_ROOM', params: MessageParams }
 interface SignalRLeaveRoom { type: 'SIGNALR_LEAVE_ROOM', params: MessageParams }
 
-export type KnownAction = SendMessage | SignalRSendMessage | SignalRJoinRoom | SignalRLeaveRoom;
+interface SignalRStartPrivateChat { type: 'SIGNALR_START_PRIVATE_CHAT', params: MessageParams }
+
+
+export type KnownAction = SendMessage | SignalRSendMessage | SignalRJoinRoom | SignalRLeaveRoom | SignalRStartPrivateChat;
 
 export const chatActions = {
     sendMessage: (params: MessageParams): AppThunkAction<KnownAction> => (dispatch, getState) => {
@@ -17,5 +20,8 @@ export const chatActions = {
     },
     leaveRoom: (params: MessageParams): AppThunkAction<KnownAction> => (dispatch, getState) => {
         dispatch({ type: 'SIGNALR_LEAVE_ROOM', params });
-    }
+    },
+    startPrivateChat: (params: MessageParams): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        dispatch({ type: 'SIGNALR_START_PRIVATE_CHAT', params });
+    },
 };

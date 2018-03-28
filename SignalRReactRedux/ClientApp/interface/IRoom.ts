@@ -1,39 +1,41 @@
-﻿export interface IRoom {
+﻿import { IParticipant } from './IParticipant'
+
+export interface IRoom {
     name: string;
     chat: string;
     hasNewMessages: Boolean;
-    addParticipant(name: string): void;
-    removeParticipant(name: string): void;
-    participants: Array<string>;
+    addParticipant(participant: IParticipant): void;
+    removeParticipant(participant: string): void;
+    participants: Array<IParticipant>;
     [key: string]: any;
 }
 
 export class Room {
-    _participants: Array<string> = new Array<string>();
+    _participants: Array<IParticipant> = new Array<IParticipant>();
     _name: string;
     _chat: string;
     _hasNewMessages: Boolean;
     [key: string]: any;
 
-    addParticipant(name: string) {
+    addParticipant(newParticipant: IParticipant) {
         var exists = this._participants.filter(participant => {
-            return participant === name;
+            return participant.NickName === newParticipant.NickName;
         });
 
         if (!exists.length) {
-            this._participants.push(name);
+            this._participants.push(newParticipant);
         }
     }
 
-    removeParticipant(name: string) {
+    removeParticipant(nickName: string) {
         var participants = this._participants.filter(participant => {
-            return participant !== name;
+            return participant.NickName !== nickName;
         });
 
         this._participants = participants;
     }
 
-    get participants(): string[] {
+    get participants(): IParticipant[] {
         return this._participants;
     }
 
@@ -57,7 +59,7 @@ export class Room {
         this._hasNewMessages = hasNewMessages;
     }
 
-    constructor(name: string, chat: string, participants: Array<string>) {
+    constructor(name: string, chat: string, participants: Array<IParticipant>) {
         this._name = name;
         this._chat = chat;
         this._hasNewMessages = false;

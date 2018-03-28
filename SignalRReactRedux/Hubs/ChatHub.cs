@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using SignalRReactRedux.Database;
 using SignalRReactRedux.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace SignalRReactRedux.Hubs
@@ -20,24 +21,32 @@ namespace SignalRReactRedux.Hubs
                 new {
                     roomName = model.RoomName,
                     message = model.Message,
-                    user = model.User,
+                    nickName = model.NickName,
+                    participantId = model.ParticipantId,
                     participants = dataBase.GetUsers(model.RoomName)
                 });
         }
 
         public Task JoinGroup(SendMessageModel model)
         {
-            dataBase.AddUser(model.User, model.RoomName);
+            var participant = new Participant
+            {
+                Id = model.ParticipantId ?? Guid.NewGuid(),
+                NickName = model.NickName
+            };
+
+            dataBase.AddUser(participant, model.RoomName);
             Groups.AddAsync(Context.ConnectionId, model.RoomName);
-            model.Message = model.User + " joined #" + model.RoomName;
+            model.Message = model.NickName + " joined #" + model.RoomName;
+            model.ParticipantId = participant.Id;
             return SendMessage(model);
         }
 
         public Task LeaveGroup(SendMessageModel model)
         {
-            dataBase.RemoveUser(model.User, model.RoomName);
+            dataBase.RemoveUser(model.ParticipantId, model.RoomName);
             Groups.RemoveAsync(Context.ConnectionId, model.RoomName);
-            model.Message = model.User + " left #" + model.RoomName;
+            model.Message = model.NickName + " left #" + model.RoomName;
             return SendMessage(model);
         }
     }

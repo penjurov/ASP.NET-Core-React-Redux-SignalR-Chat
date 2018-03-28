@@ -2,10 +2,14 @@
 import { KnownAction } from '../actions/ChatActions';
 import { ChatState } from '../interface/IChat';
 import { RoomContainer } from '../interface/IRoomContainer';
-import { Room } from '../interface/IRoom'
+import { Room } from '../interface/IRoom';
+import { Participant } from '../interface/IParticipant';
+
 
 export const chatReducer: Reducer<ChatState> = (state: ChatState, incomingAction: Action) => {
     const action = incomingAction as KnownAction;
+    let isNode = typeof window === 'undefined'
+
     switch (action.type) {
         case 'SEND_MESSAGE': 
             let changed = Object.assign({}, state);
@@ -22,16 +26,29 @@ export const chatReducer: Reducer<ChatState> = (state: ChatState, incomingAction
                 changed.rooms.addRoom(chatRoom);
             }
 
+            let participant;
+
+            if (changed.currentParticipant.Id === action.params.participantId) {
+                changed.currentParticipant = new Participant(action.params.nickName, action.params.participantId);
+                if (!isNode) {
+                    localStorage.setItem('currentChatParticipant', JSON.stringify(changed.currentParticipant));
+                }
+                
+            }
+
             chatRoom.hasNewMessages = true;
             changed.currentRoom = chatRoom;
-            changed.messageSender = action.params.user;
+            changed.messageSender = action.params.nickName;
 
             return Object.assign({}, changed);
         default:
+            var currentParticipant = !isNode && localStorage.getItem('currentChatParticipant') ? JSON.parse(localStorage.getItem('currentChatParticipant') || '') : {};
+
             return state || {
                 rooms: new RoomContainer().toLookup(),
-                nickName: '',
+                nickNameInput: '',
                 currentRoom: {},
+                currentParticipant: currentParticipant,
                 roomNameInput: '',
                 message: ''
             }
