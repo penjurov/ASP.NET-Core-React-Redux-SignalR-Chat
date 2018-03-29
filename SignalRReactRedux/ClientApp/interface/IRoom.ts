@@ -3,6 +3,7 @@
 export interface IRoom {
     name: string;
     chat: string;
+    isPrivateRoom: Boolean;
     hasNewMessages: Boolean;
     addParticipant(participant: IParticipant): void;
     removeParticipant(participant: string): void;
@@ -15,6 +16,7 @@ export class Room {
     _name: string;
     _chat: string;
     _hasNewMessages: Boolean;
+    _isPrivateRoom: Boolean;
     [key: string]: any;
 
     addParticipant(newParticipant: IParticipant) {
@@ -39,6 +41,10 @@ export class Room {
         return this._participants;
     }
 
+    set participants(participants: IParticipant[]) {
+        this._participants = participants;
+    }
+
     get name(): string {
         return this._name;
     }
@@ -59,11 +65,16 @@ export class Room {
         this._hasNewMessages = hasNewMessages;
     }
 
-    constructor(name: string, chat: string, participants: Array<IParticipant>) {
+    get isPrivateRoom(): Boolean {
+        return this._isPrivateRoom;
+    }
+
+    constructor(name: string, chat: string, participants: Array<IParticipant>, isPrivateRoom: Boolean) {
         this._name = name;
         this._chat = chat;
         this._hasNewMessages = false;
         this._participants = participants || [];
+        this._isPrivateRoom = isPrivateRoom;
     }
 
     toLookup(): IRoom {

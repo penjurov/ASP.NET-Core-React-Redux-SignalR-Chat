@@ -8,5 +8,7 @@ namespace SignalRReactRedux.Models
         public string NickName { get; set; }
         public string RoomName { get; set; }
         public Guid? ParticipantId { get; set; }
+        public string Action { get; set; }
+        public bool IsPrivateRoom { get; set; }
     }
 }

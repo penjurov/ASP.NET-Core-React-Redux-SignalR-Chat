@@ -23,4 +23,9 @@ export interface MessageParams {
     participantId?: string;
     participants?: Array<IParticipant>;
     onSuccess: any;
+    isPrivateRoom: Boolean;
+}
+
+export interface StartPrivateChatParams extends MessageParams {
+    otherParticipantId ?: string;
 }

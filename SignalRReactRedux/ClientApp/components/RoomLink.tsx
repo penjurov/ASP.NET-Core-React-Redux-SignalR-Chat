@@ -12,6 +12,6 @@ export const RoomLink = (props: RoomProps) => {
     }
 
     return (
-        <button className={props.room.hasNewMessages ? "btn btn-primary" : "btn btn-default"} onClick={changeRoomOnClick}>#{props.room.name}</button>
+        <button className={props.room.hasNewMessages ? "btn btn-primary" : "btn btn-default"} onClick={changeRoomOnClick}>{props.room.name}</button>
     );
 };

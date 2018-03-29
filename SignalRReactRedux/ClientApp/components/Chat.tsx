@@ -41,7 +41,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         }
 
         if (this.state.rooms.containsRoom(nextProps.currentRoom.name)) {
-            var room = this.state.rooms[nextProps.currentRoom.name];
+            var room = this.state.rooms.getRoom(nextProps.currentRoom.name);
             room.hasNewMessages = nextProps.messageSender !== this.state.currentParticipant.NickName && this.state.currentRoom.name !== nextProps.currentRoom.name;
         }
     }
@@ -69,15 +69,15 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
     joinChatClick() {
         let state: ChatStore.ChatState = Object.assign({}, this.state);
 
-        let roomName = this.state.roomNameInput || 'general';
+        let roomName = '#' + (this.state.roomNameInput || 'general');
 
         let onSuccess = () => {
-            let room = state.rooms[roomName];
+            let room = state.rooms.getRoom(roomName);
 
             if (room) {
                 room.hasNewMessages = false;
             } else {
-                room = new Room(roomName, '', [this.state.currentParticipant]);
+                room = new Room(roomName, '', [this.state.currentParticipant], false);
             }
 
             this.setState({
@@ -90,17 +90,17 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
             participantId: this.state.currentParticipant.Id,
             nickName: this.state.nickNameInput,
             roomName: roomName,
+            isPrivateRoom: false,
             onSuccess: onSuccess
         })
     }
 
     leaveChatClick() {
         let state: ChatStore.ChatState = Object.assign({}, this.state);
-
         let roomName = state.currentRoom.name;
         
         let onSuccess = () => {
-            let room = state.rooms['general'];
+            let room = state.rooms.getRoom('#general');
 
             if (room) {
                 room.hasNewMessages = false;
@@ -116,13 +116,16 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         }
 
         this.state.actions.leaveRoom({
-            nickName: this.state.currentParticipant.NickName,
+            nickName: state.currentParticipant.NickName,
+            participantId: state.currentParticipant.Id,
             roomName: roomName,
+            isPrivateRoom: state.currentRoom.isPrivateRoom,
             onSuccess: onSuccess
         });
     }
 
     sendMessage() {
+        let state: ChatStore.ChatState = Object.assign({}, this.state);
         let message = '<' + this.state.currentParticipant.NickName + '>: ' + this.state.message;
         
         let onSuccess = () => {
@@ -133,6 +136,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
             roomName: this.state.currentRoom.name,
             message: message,
             nickName: this.state.currentParticipant.NickName,
+            isPrivateRoom: state.currentRoom.isPrivateRoom,
             onSuccess: onSuccess
         });
     }
@@ -140,7 +144,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
     changeRoom(roomName: string) {
         let state: ChatStore.ChatState = Object.assign({}, this.state);
 
-        let room = state.rooms[roomName];
+        let room = state.rooms.getRoom(roomName);
         room.hasNewMessages = false;
         this.setState({
             currentRoom: room
@@ -149,8 +153,17 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
 
     startPrivateChat(participant: IParticipant) {
         if (this.state.currentParticipant.Id !== participant.Id) {
+            let state: ChatStore.ChatState = Object.assign({}, this.state);
+            let roomName = '@' + state.currentParticipant.NickName + '-' + participant.NickName ;
+
             let onSuccess = () => {
-                let room = new Room(participant.NickName, '', [this.state.currentParticipant]);
+                let room = state.rooms.getRoom(roomName);
+
+                if (room) {
+                    room.hasNewMessages = false;
+                } else {
+                    room = new Room(roomName, '', [this.state.currentParticipant], true);
+                }
 
                 this.setState({
                     currentRoom: room,
@@ -158,10 +171,12 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
                 });
             }
 
-            this.state.actions.joinRoom({
-                participantId: this.state.currentParticipant.Id,
-                nickName: this.state.nickNameInput,
-                roomName: participant.NickName,
+            this.state.actions.startPrivateChat({
+                participantId: state.currentParticipant.Id,
+                otherParticipantId: participant.Id,
+                nickName: state.nickNameInput,
+                roomName: roomName,
+                isPrivateRoom: true,
                 onSuccess: onSuccess
             });
         }
@@ -182,7 +197,8 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
                 updateRoomName={this.updateRoomName}
                 joinChatClick={this.joinChatClick}
                 updateChatState={this.updateChatState}
-                rooms={this.state.rooms.rooms()}
+                publicRooms={this.state.rooms.rooms(false)}
+                privateRooms={this.state.rooms.rooms(true)}
                 changeRoom={this.changeRoom}
                 chat={this.state.currentRoom.chat}
                 message={this.state.message}

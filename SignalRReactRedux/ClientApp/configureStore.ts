@@ -38,6 +38,15 @@ export function signalRInvokeMiddleware(store: any) {
                         alert(e);
                     });
                 break;
+            case "SIGNALR_START_PRIVATE_CHAT":
+                connection.invoke('StartPrivateChat', action.params)
+                    .then(() => {
+                        action.params.onSuccess();
+                    })
+                    .catch(function (e) {
+                        alert(e);
+                    });
+                break;
         }
 
         return next(action);
@@ -47,6 +56,14 @@ export function signalRInvokeMiddleware(store: any) {
 export function signalRRegisterCommands(store: any) {
     connection.on('SendMessage', data => {
         store.dispatch({ type: 'SEND_MESSAGE', params: data })
+    });
+
+    connection.on('JoinRoom', data => {
+        store.dispatch({ type: 'JOIN_ROOM', params: data })
+    });
+
+    connection.on('StartPrivateChat', data => {
+        store.dispatch({ type: 'START_PRIVATE_CHAT', params: data })
     });
 
     connection.start();

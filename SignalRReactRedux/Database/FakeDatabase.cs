@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SignalRReactRedux.Database.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,8 +7,9 @@ namespace SignalRReactRedux.Database
 {
     public class FakeDatabase
     {
-        private const string GENERAL_GROUP_NAME = "general";
-        private static Dictionary<string,List<Participant>> usersByRooms = new Dictionary<string, List<Participant>>();
+        private const string GENERAL_GROUP_NAME = "#general";
+        private static List<Participant> participants = new List<Participant>();
+        private static List<Room> rooms = new List<Room>();
 
         private static FakeDatabase instance;
 
@@ -28,62 +30,64 @@ namespace SignalRReactRedux.Database
 
         public List<Participant> GetUsers(string roomName)
         {
-            var result = new List<Participant>();
-
-            if (usersByRooms.ContainsKey(roomName))
-            {
-                result = usersByRooms[roomName];
-            }
-
-            return result;
+            var participantIds = rooms.FirstOrDefault(x => x.Name == roomName).ParticipantIds;
+            return participants.Where(x => participantIds.Contains(x.Id)).ToList();
         }
 
-        public void AddUser(Participant participant, string roomName)
+        public Participant GetUser(Guid id)
+        {
+            return participants.FirstOrDefault(x => x.Id == id);
+        }
+
+        public void AddUser(Participant participant)
         {
             if (IsNickNameTaken(participant))
             {
                 throw new Exception("Nickname is taken");
             }
 
-            if (usersByRooms.ContainsKey(roomName))
-            {
-                var users = usersByRooms[roomName];
-                if (!users.Any(x => x.Id == participant.Id))
-                {
-                    users.Add(participant);
-                }
-                else
-                {
-                    var user = users.FirstOrDefault(x => x.Id == participant.Id);
-                    user.NickName = participant.NickName;
-                }
+            participants.Add(participant);
+        }
 
-                usersByRooms[roomName] = users;
+        public void JoinRoom(Guid participantId, string roomName, bool isPrivateRoom)
+        {
+            var room = rooms.FirstOrDefault(x => x.Name == roomName);
+
+            if (room != null)
+            {
+                if (!room.ParticipantIds.Any(x => x == participantId) && (room.IsPrivateRoom ? room.ParticipantIds.Count <= 2 : true))
+                {
+                    room.ParticipantIds.Add(participantId);
+                }
             }
             else
             {
-                usersByRooms.Add(roomName, new List<Participant>
+                room = new Room
                 {
-                    participant
-                });
+                    Id = Guid.NewGuid(),
+                    Name = roomName,
+                    ParticipantIds = new List<Guid> { participantId },
+                    IsPrivateRoom = isPrivateRoom
+                };
+
+                rooms.Add(room);
             }
         }
 
         private bool IsNickNameTaken(Participant participant)
         {
-            // Can't leave general all users are there
-            return usersByRooms.ContainsKey(GENERAL_GROUP_NAME) && usersByRooms[GENERAL_GROUP_NAME].Any(x => x.NickName == participant.NickName && x.Id != participant.Id);
+            return participants.Any(x => x.NickName == participant.NickName && x.Id != participant.Id);
         }
 
-        public void RemoveUser(Guid? id, string roomName)
+        public void LeaveRoom(Guid? id, string roomName)
         {
-            if (usersByRooms.ContainsKey(roomName))
+            var room = rooms.FirstOrDefault(x => x.Name == roomName);
+
+            if (room != null)
             {
-                var users = usersByRooms[roomName];
-                if (users.Any(x => x.Id == id))
+                if (room.ParticipantIds.Any(x => x == id))
                 {
-                    users = users.Where(x => x.Id != id).ToList();
-                    usersByRooms[roomName] = users;
+                    room.ParticipantIds = room.ParticipantIds.Where(x => x != id).ToList();
                 }
             }
         }

@@ -3,18 +3,37 @@
 export interface IRoomContainer {
     addRoom(room: IRoom): void;
     removeRoom(key: string): void;
+    getRoom(name: string): IRoom;
     containsRoom(key: string): Boolean;
-    rooms(): Array<IRoom>;
-    [key: string]: any;
+    rooms(isPrivate?: Boolean): Array<IRoom>;
 }
 
 export class RoomContainer {
     _rooms: Array<IRoom> = new Array<IRoom>();
-    [key: string]: any;
+
+    getRoom(name: string): IRoom {
+        var room = this._rooms.filter(room => {
+            return room.name === name;
+        });
+
+        if (room.length) {
+            return room[0];
+        } else {
+            throw new Error('Room with that name not found');
+        }
+    }
 
     addRoom(room: IRoom) {
-        this[room.name] = room;
         this._rooms.push(room);
+    }
+
+    replaceRoom(name: string, replacement: IRoom) {
+        var rooms = this._rooms.filter(room => {
+            return room.name !== name;
+        });
+
+        rooms.push(replacement);
+        this._rooms = rooms;
     }
 
     removeRoom(name: string) {
@@ -23,19 +42,28 @@ export class RoomContainer {
         });
 
         this._rooms = rooms;
-        delete this[name];
     }
 
-    rooms(): IRoom[] {
-        return this._rooms;
+    rooms(isPrivate?: Boolean): IRoom[] {
+        let rooms;
+
+        if (isPrivate === null) {
+            rooms = this._rooms;
+        } else {
+            rooms = this._rooms.filter(room => {
+                return room.isPrivateRoom === isPrivate;
+            })
+        }
+
+        return rooms;
     }
 
     containsRoom(name: string) {
-        if (typeof this[name] === "undefined") {
-            return false;
-        }
+        var room = this._rooms.filter(room => {
+            return room.name === name;
+        });
 
-        return true;
+        return room.length !== 0;
     }
 
     toLookup(): IRoomContainer {

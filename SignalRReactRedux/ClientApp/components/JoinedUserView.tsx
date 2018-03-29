@@ -1,5 +1,5 @@
 ﻿import * as React from 'react';
-import { RoomLink } from './RoomLink'
+import { RoomList } from './RoomList'
 import { IRoom } from '../interface/IRoom';
 import { IParticipant } from '../interface/IParticipant';
 
@@ -9,7 +9,8 @@ interface JoinedUserProps {
     joinChatClick: any;
     leaveChatClick: any;
     updateChatState: any;
-    rooms: IRoom[];
+    publicRooms: IRoom[];
+    privateRooms: IRoom[];
     changeRoom: any;
     chat: string;
     message: string;
@@ -26,7 +27,7 @@ export const JoinedUserView = (props: JoinedUserProps) => {
         leaveRoomDiv = <div className="row top-buffer">
             <div className="col-sm-12">
                 <div className="pull-right">
-                    <button className="btn btn-danger" onClick={props.leaveChatClick}>Leave #{props.currentRoomName}</button>
+                    <button className="btn btn-danger" onClick={props.leaveChatClick}>Leave {props.currentRoomName}</button>
                 </div>
             </div>
         </div>
@@ -47,11 +48,8 @@ export const JoinedUserView = (props: JoinedUserProps) => {
                 </span>
             </div>
 
-            <div className='top-buffer'>
-                {props.rooms.map((room: IRoom, index: number) =>
-                    <RoomLink key={index} room={room} changeRoom={props.changeRoom} />
-                )}
-            </div>
+            <RoomList rooms={props.publicRooms} changeRoom={props.changeRoom} />
+            <RoomList rooms={props.privateRooms} changeRoom={props.changeRoom} />
 
             <div className="row top-buffer">
                 <div className="col-sm-10">
