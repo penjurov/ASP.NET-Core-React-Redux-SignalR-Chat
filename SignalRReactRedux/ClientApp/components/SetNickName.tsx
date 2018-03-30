@@ -1,24 +1,27 @@
 ﻿import * as React from 'react';
 
 interface RegisterUserProps {
-    nickName: string;
+    nickname: string;
     joinChatClick: any;
     updateChatState: any;
+    isChangeNickname: Boolean;
 }
 
-export const RegisterUserView = (props: RegisterUserProps) => {
+export const SetNickname = (props: RegisterUserProps) => {
+    let buttonText = props.isChangeNickname ? 'Change nickname' : 'Join';
+
     return (
         <div>
-            <label htmlFor="nickNameInput">Select Nickname:</label>
+            <label htmlFor="nicknameInput">Select Nickname:</label>
             <div className="input-group">
                 <input
                     type="text"
-                    name="nickNameInput"
+                    name="nicknameInput"
                     className="form-control width100"
-                    value={props.nickName}
+                    value={props.nickname}
                     onChange={props.updateChatState} />
                 <span className="input-group-btn">
-                    <button className="btn btn-info" onClick={props.joinChatClick}>Join</button>
+                    <button className="btn btn-info" onClick={props.joinChatClick}>{buttonText}</button>
                 </span>
             </div>
         </div>

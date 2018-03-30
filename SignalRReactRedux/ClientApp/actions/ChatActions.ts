@@ -1,5 +1,5 @@
 ﻿import { AppThunkAction } from "../store";
-import { ChatState, MessageParams, StartPrivateChatParams } from '../interface/IChat';
+import { ChatState, MessageParams, StartPrivateChatParams } from '../common/IChat';
 
 interface SendMessage { type: 'SEND_MESSAGE', params: MessageParams }
 interface JoinRoom { type: 'JOIN_ROOM', params: MessageParams }

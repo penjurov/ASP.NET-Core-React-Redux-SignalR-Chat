@@ -42,6 +42,8 @@
     "webpack-merge": "4.1.0"
   },
   "dependencies": {
-    "@aspnet/signalr-client": "^1.0.0-alpha2-final"
+    "@aspnet/signalr-client": "^1.0.0-alpha2-final",
+    "@types/toastr": "^2.1.35",
+    "toastr": "^2.1.4"
   }
 }

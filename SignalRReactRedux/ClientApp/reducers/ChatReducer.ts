@@ -1,12 +1,12 @@
 ﻿import { Reducer, Action } from 'redux';
 import { KnownAction } from '../actions/ChatActions';
-import { ChatState, MessageParams } from '../interface/IChat';
-import { RoomContainer } from '../interface/IRoomContainer';
-import { Room } from '../interface/IRoom';
-import { Participant, IParticipant } from '../interface/IParticipant';
+import { ChatState, MessageParams } from '../common/IChat';
+import { RoomContainer } from '../common/IRoomContainer';
+import { Room } from '../common/IRoom';
+import { Participant, IParticipant } from '../common/IParticipant';
 
 let isParticipantDataChanged = (participant: IParticipant, params: MessageParams) => {
-    return participant.Id === params.participantId && participant.NickName !== params.nickName;
+    return participant.Id && participant.Id === params.participantId && participant.Nickname !== params.nickname;
 }
 
 let updateMessageState = (state: ChatState, params: MessageParams) => {
@@ -25,7 +25,7 @@ let updateMessageState = (state: ChatState, params: MessageParams) => {
     }
 
     changed.currentRoom = new Room(chatRoom.name, chatRoom.chat, chatRoom.participants, chatRoom.isPrivateRoom);
-    changed.messageSender = params.nickName;
+    changed.messageSender = params.nickname;
 
     return changed;
 }
@@ -38,11 +38,28 @@ export const chatReducer: Reducer<ChatState> = (state: ChatState, incomingAction
         case 'JOIN_ROOM': {
             let changed = updateMessageState(state, action.params);
 
-            if (!changed.currentParticipant.Id || isParticipantDataChanged(changed.currentParticipant, action.params)) {
-                changed.currentParticipant = new Participant(action.params.nickName, action.params.participantId);
+            let participantDataChanged = isParticipantDataChanged(changed.currentParticipant, action.params);
+
+            if (!changed.currentParticipant.Id || participantDataChanged) {
+                changed.currentParticipant = new Participant(action.params.nickname, action.params.participantId);
                 if (!isNode) {
                     localStorage.setItem('currentChatParticipant', JSON.stringify(changed.currentParticipant));
                 }
+            }
+
+            if (action.params.isNickChange) {
+                let message = action.params.message || '';
+
+                changed.rooms.rooms()
+                    .filter(room => {
+                        return room.name !== changed.currentRoom.name;
+                    })
+                    .forEach(room => {
+                        room.removeParticipant(action.params.oldUserNickName || '');
+                        var participant = new Participant(action.params.nickname, action.params.participantId);
+                        room.addParticipant(participant);
+                        room.chat = room.chat ? room.chat + "\n" + message : message;
+                    });
             }
 
             return Object.assign({}, changed);
@@ -60,11 +77,15 @@ export const chatReducer: Reducer<ChatState> = (state: ChatState, incomingAction
 
             return state || {
                 rooms: new RoomContainer().toLookup(),
-                nickNameInput: '',
-                currentRoom: {},
+                nicknameInput: '',
+                currentRoom: {
+                    participants: []
+                },
                 currentParticipant: currentParticipant,
                 roomNameInput: '',
-                message: ''
+                message: '',
+                isSetNicknameVisible: true,
+                isChangeNickname: false
             }
     }
 };

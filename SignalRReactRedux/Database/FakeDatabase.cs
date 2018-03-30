@@ -76,7 +76,7 @@ namespace SignalRReactRedux.Database
 
         private bool IsNickNameTaken(Participant participant)
         {
-            return participants.Any(x => x.NickName == participant.NickName && x.Id != participant.Id);
+            return participants.Any(x => x.Nickname == participant.Nickname && x.Id != participant.Id);
         }
 
         public void LeaveRoom(Guid? id, string roomName)

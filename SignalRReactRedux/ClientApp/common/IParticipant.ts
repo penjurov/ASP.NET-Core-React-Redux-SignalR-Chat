@@ -1,15 +1,15 @@
 ﻿export interface IParticipant {
     Id?: string;
-    NickName: string;
+    Nickname: string;
 }
 
 export class Participant {
     Id?: string;
-    NickName: string;
+    Nickname: string;
 
-    constructor(nickName: string, id?: string) {
+    constructor(nickname: string, id?: string) {
         this.Id = id;
-        this.NickName = nickName;
+        this.Nickname = nickname;
     }
 
     toLookup(): IParticipant {

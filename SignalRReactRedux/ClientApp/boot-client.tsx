@@ -9,6 +9,7 @@ import { createBrowserHistory } from 'history';
 import configureStore from './configureStore';
 import { ApplicationState }  from './store';
 import * as RoutesModule from './routes';
+import '../node_modules/toastr/build/toastr.min.css';
 let routes = RoutesModule.routes;
 
 // Create browser history to use in the Redux store

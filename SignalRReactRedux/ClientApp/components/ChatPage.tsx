@@ -4,15 +4,17 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from "redux";
 import { ApplicationState }  from '../store';
 import { chatActions } from '../actions/ChatActions';
-import { RegisterUserView } from './RegisterUserView';
+import { SetNickname } from './SetNickname';
 import { JoinedUserView } from './JoinedUserView';
-import * as ChatStore from '../interface/IChat';
-import { Room } from '../interface/IRoom';
-import { IParticipant, Participant } from '../interface/IParticipant';
+import * as ChatStore from '../common/IChat';
+import { Room } from '../common/IRoom';
+import { IParticipant, Participant } from '../common/IParticipant';
+import { Constants } from '../common/Constants';
+import * as toastr from "toastr";
 
 type ChatProps = ChatStore.ChatState & RouteComponentProps<{}>;
 
-class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
+class ChatPage extends React.Component<ChatProps, ChatStore.ChatState> {
     constructor(props: any, context: any) {
         super(props, context);
 
@@ -25,6 +27,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         this.updateRoomName = this.updateRoomName.bind(this);
         this.leaveChatClick = this.leaveChatClick.bind(this);
         this.startPrivateChat = this.startPrivateChat.bind(this);
+        this.changeNickname = this.changeNickname.bind(this);
     }
 
     componentWillReceiveProps(nextProps: ChatProps) {
@@ -34,15 +37,15 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
             });
         }
 
-        if (this.state.currentParticipant.Id === nextProps.currentParticipant.Id) {
+        if (this.state.currentParticipant.Id && this.state.currentParticipant.Id === nextProps.currentParticipant.Id) {
             this.setState({
                 currentParticipant: nextProps.currentParticipant
             });
         }
 
-        if (this.state.rooms.containsRoom(nextProps.currentRoom.name)) {
+        if ( this.state.rooms.containsRoom(nextProps.currentRoom.name)) {
             var room = this.state.rooms.getRoom(nextProps.currentRoom.name);
-            room.hasNewMessages = nextProps.messageSender !== this.state.currentParticipant.NickName && this.state.currentRoom.name !== nextProps.currentRoom.name;
+            room.hasNewMessages = nextProps.messageSender !== this.state.currentParticipant.Nickname && this.state.currentRoom.name !== nextProps.currentRoom.name;
         }
     }
 
@@ -66,10 +69,30 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         this.setState(state);
     }
 
+    validateJoinChatClick(state: ChatStore.ChatState): Boolean {
+        if (!state.isSetNicknameVisible && !state.roomNameInput) {
+            toastr.error('Room name is required');
+            return false;
+        }
+
+        if ((state.isSetNicknameVisible && !state.nicknameInput)) {
+            toastr.error('Nickname is required');
+            return false;
+        }
+
+        return true;
+    }
+
     joinChatClick() {
         let state: ChatStore.ChatState = Object.assign({}, this.state);
 
-        let roomName = '#' + (this.state.roomNameInput || 'general');
+        if (!this.validateJoinChatClick(state)) {
+            return;
+        }
+
+        let roomName = state.roomNameInput
+                    ? Constants.ROOMS_PREFIX + state.roomNameInput
+                    : state.currentRoom.name ? state.currentRoom.name : Constants.GENERAL_ROOM_NAME;
 
         let onSuccess = () => {
             let room = state.rooms.getRoom(roomName);
@@ -77,18 +100,21 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
             if (room) {
                 room.hasNewMessages = false;
             } else {
-                room = new Room(roomName, '', [this.state.currentParticipant], false);
+                room = new Room(roomName, '', [state.currentParticipant], false);
             }
 
             this.setState({
                 currentRoom: room,
-                roomNameInput: ''
+                roomNameInput: '',
+                nicknameInput: '',
+                isSetNicknameVisible: false,
+                isChangeNickname: false
             });
         }
 
         this.state.actions.joinRoom({
-            participantId: this.state.currentParticipant.Id,
-            nickName: this.state.nickNameInput,
+            participantId: state.currentParticipant.Id,
+            nickname: state.isSetNicknameVisible ? state.nicknameInput : state.currentParticipant.Nickname,
             roomName: roomName,
             isPrivateRoom: false,
             onSuccess: onSuccess
@@ -100,7 +126,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         let roomName = state.currentRoom.name;
         
         let onSuccess = () => {
-            let room = state.rooms.getRoom('#general');
+            let room = state.rooms.getRoom(Constants.GENERAL_ROOM_NAME);
 
             if (room) {
                 room.hasNewMessages = false;
@@ -116,7 +142,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         }
 
         this.state.actions.leaveRoom({
-            nickName: state.currentParticipant.NickName,
+            nickname: state.currentParticipant.Nickname,
             participantId: state.currentParticipant.Id,
             roomName: roomName,
             isPrivateRoom: state.currentRoom.isPrivateRoom,
@@ -126,7 +152,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
 
     sendMessage() {
         let state: ChatStore.ChatState = Object.assign({}, this.state);
-        let message = '<' + this.state.currentParticipant.NickName + '>: ' + this.state.message;
+        let message = '<' + this.state.currentParticipant.Nickname + '>: ' + this.state.message;
         
         let onSuccess = () => {
             this.setState({ message: '' });
@@ -135,7 +161,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         this.state.actions.sendMessage({
             roomName: this.state.currentRoom.name,
             message: message,
-            nickName: this.state.currentParticipant.NickName,
+            nickname: this.state.currentParticipant.Nickname,
             isPrivateRoom: state.currentRoom.isPrivateRoom,
             onSuccess: onSuccess
         });
@@ -154,7 +180,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
     startPrivateChat(participant: IParticipant) {
         if (this.state.currentParticipant.Id !== participant.Id) {
             let state: ChatStore.ChatState = Object.assign({}, this.state);
-            let roomName = '@' + state.currentParticipant.NickName + '-' + participant.NickName ;
+            let roomName = '@' + state.currentParticipant.Nickname + '-' + participant.Nickname ;
 
             let onSuccess = () => {
                 let room = state.rooms.getRoom(roomName);
@@ -174,7 +200,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
             this.state.actions.startPrivateChat({
                 participantId: state.currentParticipant.Id,
                 otherParticipantId: participant.Id,
-                nickName: state.nickNameInput,
+                nickname: state.nicknameInput,
                 roomName: roomName,
                 isPrivateRoom: true,
                 onSuccess: onSuccess
@@ -182,13 +208,21 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
         }
     }
 
+    changeNickname() {
+        this.setState({
+            isSetNicknameVisible: true,
+            isChangeNickname: true
+        });
+    }
+
     public render() {
         let body;
 
-        if (this.state.currentRoom.name === undefined) {
-            body = <RegisterUserView
-                nickName={this.state.nickNameInput}
+        if (this.state.isSetNicknameVisible) {
+            body = <SetNickname
+                nickname={this.state.nicknameInput}
                 joinChatClick={this.joinChatClick}
+                isChangeNickname={this.state.isChangeNickname}
                 updateChatState={this.updateChatState}
             />
         } else {
@@ -207,6 +241,7 @@ class Chat extends React.Component<ChatProps, ChatStore.ChatState> {
                 leaveChatClick={this.leaveChatClick}
                 participants={this.state.currentRoom.participants}
                 startPrivateChat={this.startPrivateChat}
+                changeNickname={this.changeNickname}
             />
         }
 
@@ -224,4 +259,4 @@ function mapDispatchToProps(dispatch: any) {
     return { actions: bindActionCreators(chatActions, dispatch) };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Chat);
+export default connect(mapStateToProps, mapDispatchToProps)(ChatPage);

@@ -18,6 +18,11 @@
       "integrity": "sha1-CT1n7XgNiJyVQ/bcok6+4La5/EU=",
       "dev": true
     },
+    "@types/jquery": {
+      "version": "3.3.1",
+      "resolved": "https://registry.npmjs.org/@types/jquery/-/jquery-3.3.1.tgz",
+      "integrity": "sha512-N3h+rzN518yl2xKrW0o6KKdNmWZ+OwG6SoM5TBEQFF0tTv5wXPEsoOuYQ2Kt3/89XbcSZUJLdjiT/2c3BR/ApQ=="
+    },
     "@types/node": {
       "version": "8.0.7",
       "resolved": "https://registry.npmjs.org/@types/node/-/node-8.0.7.tgz",
@@ -101,6 +106,14 @@
       "resolved": "https://registry.npmjs.org/@types/tapable/-/tapable-0.2.3.tgz",
       "integrity": "sha1-CIiw8gzH5Y4cIqGIi06WPu+qgQo=",
       "dev": true
+    },
+    "@types/toastr": {
+      "version": "2.1.35",
+      "resolved": "https://registry.npmjs.org/@types/toastr/-/toastr-2.1.35.tgz",
+      "integrity": "sha512-NSPsNyBRxopghpNQLPqMLGK4oDIey5prT6RTkExljOfRrid0bkTr5v9NXYntBOwhEMmHjrmdsxY/g2/eKAJZpg==",
+      "requires": {
+        "@types/jquery": "3.3.1"
+      }
     },
     "@types/uglify-js": {
       "version": "2.6.29",
@@ -3229,8 +3242,7 @@
     "jquery": {
       "version": "3.2.1",
       "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.2.1.tgz",
-      "integrity": "sha1-XE2d5lKvbNCncBVKYxu6ErAVx4c=",
-      "dev": true
+      "integrity": "sha1-XE2d5lKvbNCncBVKYxu6ErAVx4c="
     },
     "js-base64": {
       "version": "2.1.9",
@@ -5500,6 +5512,14 @@
             "kind-of": "3.2.2"
           }
         }
+      }
+    },
+    "toastr": {
+      "version": "2.1.4",
+      "resolved": "https://registry.npmjs.org/toastr/-/toastr-2.1.4.tgz",
+      "integrity": "sha1-i0O+ZPudDEFIcURvLbjoyk6V8YE=",
+      "requires": {
+        "jquery": "3.2.1"
       }
     },
     "tty-browserify": {

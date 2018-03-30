@@ -22,16 +22,19 @@ namespace SignalRReactRedux.Hubs
             {
                 roomName = model.RoomName,
                 message = model.Message,
-                nickName = model.NickName,
+                nickname = model.NickName,
                 participantId = model.ParticipantId,
                 participants = dataBase.GetUsers(model.RoomName),
-                isPrivateRoom = model.IsPrivateRoom
+                isPrivateRoom = model.IsPrivateRoom,
+                isNickChange = model.IsNickChange,
+                oldUserNickName = model.OldUserNickName
             });
         }
 
         public Task JoinGroup(SendMessageModel model)
         {
             Participant participant;
+            var message = model.NickName + " joined " + model.RoomName;
 
             if (model.ParticipantId.HasValue)
             {
@@ -43,7 +46,14 @@ namespace SignalRReactRedux.Hubs
                 }
                 else
                 {
-                    participant.NickName = model.NickName;
+                    if (participant.Nickname != model.NickName)
+                    {
+                        message = participant.Nickname + " has changed the nick to " + model.NickName;
+                        model.IsNickChange = true;
+                        model.OldUserNickName = participant.Nickname;
+                    }
+                    
+                    participant.Nickname = model.NickName;
                     participant.ConnectionId = Context.ConnectionId;
                 }
             }
@@ -55,7 +65,7 @@ namespace SignalRReactRedux.Hubs
             dataBase.JoinRoom(participant.Id, model.RoomName, false);
 
             Groups.AddAsync(Context.ConnectionId, model.RoomName);
-            model.Message = model.NickName + " joined " + model.RoomName;
+            model.Message = message;
             model.ParticipantId = participant.Id;
             model.Action = "JoinRoom";
             return SendMessage(model);
@@ -66,7 +76,7 @@ namespace SignalRReactRedux.Hubs
             var participant = new Participant
             {
                 Id = model.ParticipantId ?? Guid.NewGuid(),
-                NickName = model.NickName,
+                Nickname = model.NickName,
                 ConnectionId = Context.ConnectionId
             };
 
@@ -91,7 +101,7 @@ namespace SignalRReactRedux.Hubs
             dataBase.JoinRoom(model.ParticipantId.Value, model.RoomName, true);
             dataBase.JoinRoom(model.OtherParticipantId, model.RoomName, true);
 
-            model.Message = model.NickName + " started private chat with " + otherUser.NickName;
+            model.Message = model.NickName + " started private chat with " + otherUser.Nickname;
             model.Action = "StartPrivateChat";
             return SendMessage(model);
         }

@@ -47,7 +47,7 @@ export class RoomContainer {
     rooms(isPrivate?: Boolean): IRoom[] {
         let rooms;
 
-        if (isPrivate === null) {
+        if (isPrivate === undefined || isPrivate === null) {
             rooms = this._rooms;
         } else {
             rooms = this._rooms.filter(room => {

@@ -1,14 +1,17 @@
 ﻿import * as React from 'react';
 import { RoomList } from './RoomList'
-import { IRoom } from '../interface/IRoom';
-import { IParticipant } from '../interface/IParticipant';
+import { LeaveRoom } from './LeaveRoom'
+import { IRoom } from '../common/IRoom';
+import { IParticipant } from '../common/IParticipant';
+import { Constants } from '../common/Constants';
 
 interface JoinedUserProps {
     roomNameInput: string;
     updateRoomName: any;
     joinChatClick: any;
-    leaveChatClick: any;
+    leaveChatClick: Function;
     updateChatState: any;
+    changeNickname: any;
     publicRooms: IRoom[];
     privateRooms: IRoom[];
     changeRoom: any;
@@ -23,14 +26,8 @@ interface JoinedUserProps {
 export const JoinedUserView = (props: JoinedUserProps) => {
     let leaveRoomDiv;
 
-    if (props.currentRoomName !== 'general') {
-        leaveRoomDiv = <div className="row top-buffer">
-            <div className="col-sm-12">
-                <div className="pull-right">
-                    <button className="btn btn-danger" onClick={props.leaveChatClick}>Leave {props.currentRoomName}</button>
-                </div>
-            </div>
-        </div>
+    if (props.currentRoomName !== Constants.GENERAL_ROOM_NAME) {
+        leaveRoomDiv = <LeaveRoom currentRoomName={props.currentRoomName} leaveChatClick={props.leaveChatClick}/>
     }
 
     return (
@@ -71,8 +68,10 @@ export const JoinedUserView = (props: JoinedUserProps) => {
                 </div>
                 <div className="col-sm-2">
                     <select className="chat-participants" multiple={true}>
-                        {props.participants.map((participant, index) => <option key={index} onClick={() => props.startPrivateChat(participant)}>{participant.NickName}</option>)}
+                        {props.participants.map((participant, index) => <option key={index} onClick={() => props.startPrivateChat(participant)}>{participant.Nickname}</option>)}
                     </select>
+
+                    <button className="btn btn-info change-nickname" onClick={props.changeNickname}>Change nickname</button>
                 </div>
             </div>
         </div>

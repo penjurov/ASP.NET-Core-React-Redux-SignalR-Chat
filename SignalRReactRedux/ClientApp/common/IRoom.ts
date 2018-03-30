@@ -21,7 +21,7 @@ export class Room {
 
     addParticipant(newParticipant: IParticipant) {
         var exists = this._participants.filter(participant => {
-            return participant.NickName === newParticipant.NickName;
+            return participant.Nickname === newParticipant.Nickname;
         });
 
         if (!exists.length) {
@@ -29,9 +29,9 @@ export class Room {
         }
     }
 
-    removeParticipant(nickName: string) {
+    removeParticipant(nickname: string) {
         var participants = this._participants.filter(participant => {
-            return participant.NickName !== nickName;
+            return participant.Nickname !== nickname;
         });
 
         this._participants = participants;

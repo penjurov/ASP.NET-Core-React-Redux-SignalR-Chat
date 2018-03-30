@@ -27,13 +27,17 @@ html, body {
     height: 100%;
 }
 
-textarea.chat-area {
+textarea.chat-area, select.chat-participants {
     height: 67vh;
 }
 
-select.chat-participants {
+select.chat-participants, .change-nickname {
     width: 100%;
-    height: 79vh;
+}
+
+.change-nickname {
+    margin-top: 8vh;
+    border: 0;
 }
 
 @media (max-width: 767px) {
